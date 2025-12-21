@@ -15,6 +15,17 @@ using UnityEngine;
 
 namespace RaruLib
 {
+    public enum PanelKind
+    {
+        Main,
+        Start,
+        End,
+        Config,
+        StageSelect,
+        Menu,
+        MAX
+    }
+
     public class ScenePanel : MonoBehaviour
     {
         public static ScenePanel instance;
@@ -30,12 +41,12 @@ namespace RaruLib
             public void CallOpenPanel() { onOpenPanel?.Invoke(); }
             public void CallClosePanel() { onClosePanel?.Invoke(); }
 
-            public void OpenPanel() { panel.SetActive(true); }
-            public void ClosePanel() { panel.SetActive(false); }
+            public void OpenPanel() { if (panel == null) { return; } panel.SetActive(true); }
+            public void ClosePanel() { if (panel == null){ return; } panel.SetActive(false); }
         }
 
-        [SerializeField]
-        public PanelData[] panelDatas;  // イベント量に応じたイベント配列
+        [SerializeField,Header("内部enumの順に入れる")]
+        public PanelData[] panelDatas = new PanelData[(int)PanelKind.MAX];  // イベント量に応じたイベント配列
 
         /***************************************************************
          * 初期化
@@ -61,10 +72,10 @@ namespace RaruLib
         /***************************************************************
          * 呼び出しメソッド
          * ************************************************************/
-        public void DataCallOpenPanel(int index)
+        public void DataCallOpenPanel(PanelKind panel)
         {
-            if (index >= panelDatas.Length) { Debug.Log("存在しない要素はアクセスできません"); return; }
-            panelDatas[index].CallOpenPanel();
+            if ((int)panel >= panelDatas.Length) { Debug.Log("存在しない要素はアクセスできません"); return; }
+            panelDatas[(int)panel].CallOpenPanel();
         }
     }
 }

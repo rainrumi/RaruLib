@@ -7,6 +7,7 @@ namespace RaruLib
 {
     public static class SearchComp
     {
+        /*
         public static T GetComponentOnLog<T>(this Component comp)
         {
             T result = comp.GetComponent<T>();
@@ -40,5 +41,6 @@ namespace RaruLib
             if (index == null) { Debug.Log($"{gameObj.name}の{nameof(comp)}の{nameof(index)}がアタッチされていません"); return false; }
             return true;
         }
+        */
     }
 }

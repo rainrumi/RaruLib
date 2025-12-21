@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UniRx;
 using UnityEngine;
 
 /***************************************************************
@@ -23,6 +24,9 @@ namespace RaruLib
         public static Sound instance;
         public bool dontDestroy;    // 本スクリプトの非破壊化
 
+        private bool _finishedInit = false; // 初期化が終了した
+        public bool finishedInit => _finishedInit;
+
         [SerializeField] SoundGroup[] soundGroups;          // 音のカテゴリ
         private Dictionary<string, SoundGroup> groupDict;
 
@@ -30,7 +34,7 @@ namespace RaruLib
         public class SoundGroup
         {
             public string groupName;        // カテゴリの名称
-            public float volume = 0.5f;     // カテゴリの音量
+            [Range(0,1)]public float volume = 0.5f;     // カテゴリの音量
             public SoundData[] soundDatas;  // カテゴリに入れる音
             public Dictionary<string, AudioSource> soundDict;
 
@@ -63,6 +67,8 @@ namespace RaruLib
 
             foreach (var data in soundGroups)   // 音量の初期化
             { ChangeVolume(data.groupName, data.volume); }
+
+            _finishedInit = true;   // 
         }
 
         // 全ての辞書の初期化と挿入
@@ -119,7 +125,6 @@ namespace RaruLib
             { Debug.Log($"{groupName}は存在しないカテゴリです"); return; }
             if (!groupDict[groupName].soundDict.ContainsKey(soundName))
             { Debug.Log($"{soundName}は存在しない音源名です"); return; }
-
             groupDict[groupName].soundDict[soundName].Play();
         }
 
