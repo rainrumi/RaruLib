@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UniRx;
 using UnityEngine;
 
 /***************************************************************
@@ -16,6 +15,12 @@ using UnityEngine;
 * 追記.何故これを書くのかは書きませんが、同じコンポーネントはひとつのオブジェに複数個アタッチできます。
 * 
 * ************************************************************/
+
+public enum SoundKind
+{
+    BGM,
+    SE
+}
 
 namespace RaruLib
 {
@@ -34,7 +39,7 @@ namespace RaruLib
         public class SoundGroup
         {
             public string groupName;        // カテゴリの名称
-            [Range(0,1)]public float volume = 0.5f;     // カテゴリの音量
+            [Range(0, 1)] public float volume = 0.5f;     // カテゴリの音量
             public SoundData[] soundDatas;  // カテゴリに入れる音
             public Dictionary<string, AudioSource> soundDict;
 
@@ -62,7 +67,7 @@ namespace RaruLib
                 Debug.Log($"重複した{instance}を削除します");
                 Destroy(instance.gameObject);
             }
-            
+
             InitSoundGroup();
 
             foreach (var data in soundGroups)   // 音量の初期化
@@ -106,7 +111,7 @@ namespace RaruLib
         /// <param name="groupName">カテゴリ</param>
         public void ChangeVolume(string groupName, float newVolume)
         {
-            if (!groupDict.ContainsKey(groupName)) 
+            if (!groupDict.ContainsKey(groupName))
             { Debug.Log($"{groupName}は存在しないカテゴリです"); return; }
 
             groupDict[groupName].volume = newVolume;
