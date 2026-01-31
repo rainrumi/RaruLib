@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 
 /***************************************************************
@@ -134,6 +136,30 @@ namespace RaruLib
         }
 
         /***************************************************************
+        * フェード再生
+        ***************************************************************/
+        /// <param name="groupName">カテゴリ</param>
+        /// <param name="soundName">音の名称</param>
+        public async UniTaskVoid Play(string groupName, string soundName, float duration)
+        {
+            if (!groupDict.ContainsKey(groupName))
+            { Debug.Log($"{groupName}は存在しないカテゴリです"); return; }
+            if (!groupDict[groupName].soundDict.ContainsKey(soundName))
+            { Debug.Log($"{soundName}は存在しない音源名です"); return; }
+            if (groupDict[groupName].soundDict[soundName].isPlaying)
+            { Debug.Log($"既に再生中です"); return; }
+
+            float cacheVolume = GetVolume(groupName);
+
+            groupDict[groupName].soundDict[soundName].volume = 0;
+
+            await UniTask.Yield();
+
+            groupDict[groupName].soundDict[soundName].Play();
+            groupDict[groupName].soundDict[soundName].DOFade(cacheVolume, duration);
+        }
+
+        /***************************************************************
         * 停止
         ***************************************************************/
         /// <param name="groupName">カテゴリ</param>
@@ -147,5 +173,28 @@ namespace RaruLib
 
             groupDict[groupName].soundDict[soundName].Stop();
         }
+
+        /***************************************************************
+        * フェード停止
+        ***************************************************************/
+        /// <param name="groupName">カテゴリ</param>
+        /// <param name="soundName">音の名称</param>
+        public async UniTaskVoid Stop(string groupName, string soundName, float duration)
+        {
+            if (!groupDict.ContainsKey(groupName))
+            { Debug.Log($"{groupName}は存在しないカテゴリです"); return; }
+            if (!groupDict[groupName].soundDict.ContainsKey(soundName))
+            { Debug.Log($"{soundName}は存在しない音源名です"); return; }
+
+            float cacheVolume = GetVolume(groupName);
+
+            groupDict[groupName].soundDict[soundName].DOFade(0, duration);
+
+            await UniTask.WaitForSeconds(duration);
+
+            groupDict[groupName].soundDict[soundName].Stop();
+            groupDict[groupName].soundDict[soundName].volume = cacheVolume;
+        }
+
     }
 }
