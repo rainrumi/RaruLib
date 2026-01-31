@@ -13,7 +13,7 @@ public enum ButtonViewKind
 }
 
 [RequireComponent(typeof(CanvasGroup))]
-public class ButtonEventView : MonoBehaviour
+public class UiViewAsync : MonoBehaviour
 {
     private CanvasGroup _canvasGroup;
     private RectTransform _rectTransform;
@@ -28,17 +28,8 @@ public class ButtonEventView : MonoBehaviour
     [SerializeField,Range(0,1)] private float amountScale = 0.5f;
     //[SerializeField] private float amountFade = 0.5f;
 
-    private void Start()
+    protected virtual void Start()
     {
-        if (buttonEvent != null)
-        {
-            buttonEvent.OnClickEvent
-                .Subscribe(_ =>
-                {
-                    ViewEvent().Forget();
-                }).AddTo(this);
-        }
-
         _canvasGroup = GetComponent<CanvasGroup>();
         _rectTransform = GetComponent<RectTransform>();
         _initPosition = _rectTransform.localPosition;
@@ -46,7 +37,7 @@ public class ButtonEventView : MonoBehaviour
         _initAlpha = _canvasGroup.alpha;
     }
 
-    public async UniTask ViewEvent()
+    public async UniTask ViewEventAsync()
     {
         if (!this) return;
 
