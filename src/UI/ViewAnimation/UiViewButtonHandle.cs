@@ -1,11 +1,11 @@
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using UniRx;
+using R3;
 using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(CanvasGroup))]
-public class ButtonEventHandle : ButtonEventView
+public class UiViewButtonHandle : UiViewAsync
 {
     [SerializeField] private ButtonEvent buttonEvent;
 

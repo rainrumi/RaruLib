@@ -1,10 +1,10 @@
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using UniRx;
+using R3;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum ButtonViewKind
+public enum ViewKind
 {
     View_ScaleIn,
     Hide_ScaleOut,
@@ -23,7 +23,7 @@ public class UiViewAsync : MonoBehaviour
 
     [SerializeField] private string memo="";    // 何するかのメモ（分からなくなるため、インスペクタ用）
     [SerializeField] private ButtonEvent buttonEvent;
-    [SerializeField] private ButtonViewKind viewKind;
+    [SerializeField] private ViewKind viewKind;
     [SerializeField] private float duration = 1f;
     [SerializeField,Range(0,1)] private float amountScale = 0.5f;
     //[SerializeField] private float amountFade = 0.5f;
@@ -46,7 +46,7 @@ public class UiViewAsync : MonoBehaviour
 
         switch (viewKind)
         {
-            case ButtonViewKind.View_ScaleIn:
+            case ViewKind.View_ScaleIn:
                 SetTrigger(true);
                 _rectTransform.localScale =
                     new Vector3(amountScale, amountScale, amountScale);
@@ -58,7 +58,7 @@ public class UiViewAsync : MonoBehaviour
                     .AsyncWaitForCompletion();
                 break;
 
-            case ButtonViewKind.Hide_ScaleOut:
+            case ViewKind.Hide_ScaleOut:
                 _rectTransform.localScale = _initScale;
 
                 await _rectTransform
@@ -70,7 +70,7 @@ public class UiViewAsync : MonoBehaviour
                 SetTrigger(false);
                 break;
 
-            case ButtonViewKind.View_FadeIn:
+            case ViewKind.View_FadeIn:
                 SetTrigger(true);
                 _canvasGroup.alpha = 0;
 
@@ -81,7 +81,7 @@ public class UiViewAsync : MonoBehaviour
                     .AsyncWaitForCompletion();
                 break;
 
-            case ButtonViewKind.Hide_FadeOut:
+            case ViewKind.Hide_FadeOut:
                 _canvasGroup.alpha = 1;
 
                 await _canvasGroup
