@@ -1,28 +1,31 @@
 using UnityEngine;
 
-[RequireComponent(typeof(SoundCommand))]
-public class SetSound : MonoBehaviour
+namespace RaruLib
 {
-    private SoundCommand command;
-
-    [SerializeField] private SoundKind kind = SoundKind.SE;
-    [SerializeField] private string name = "click";
-
-    private void Start()
+    [RequireComponent(typeof(SoundCommand))]
+    public class SetSound : MonoBehaviour
     {
-        command = GetComponent<SoundCommand>();
-    }
+        private SoundCommand command;
 
-    public void CallSound()
-    {
-        switch(kind)
+        [SerializeField] private SoundKind kind = SoundKind.SE;
+        [SerializeField] private string name = "click";
+
+        private void Start()
         {
-            case SoundKind.BGM:
-                command.CallPlayBGM(name);
-                break;
-            case SoundKind.SE:
-                command.CallPlaySE(name);
-                break;
+            command = GetComponent<SoundCommand>();
+        }
+
+        public void CallSound()
+        {
+            switch (kind)
+            {
+                case SoundKind.BGM:
+                    command.CallPlayBGM(name);
+                    break;
+                case SoundKind.SE:
+                    command.CallPlaySE(name);
+                    break;
+            }
         }
     }
 }

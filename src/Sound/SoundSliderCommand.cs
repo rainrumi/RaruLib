@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace RaruLib
 {
-    public class SliderCommand : MonoBehaviour
+    public class SoundSliderCommand : MonoBehaviour
     {
         private bool activeSound => Sound.instance != null;
 

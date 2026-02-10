@@ -2,27 +2,30 @@ using RaruLib;
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(Slider))]
-public class SoundSliderInitialize : MonoBehaviour
+namespace RaruLib
 {
-    private bool activeSound => Sound.instance != null;
-    private Slider slider;
-    [SerializeField] private SoundKind kind = SoundKind.BGM;
-
-    private void Start()
+    [RequireComponent(typeof(Slider))]
+    public class SoundSliderInitialize : MonoBehaviour
     {
-        if (!activeSound) { Debug.Log("Sound‚ª‚ ‚è‚Ü‚¹‚ñ",gameObject); return; }
+        private bool activeSound => Sound.instance != null;
+        private Slider slider;
+        [SerializeField] private SoundKind kind = SoundKind.BGM;
 
-        slider = GetComponent<Slider>();
-
-        switch (kind)
+        private void Start()
         {
-            case SoundKind.BGM:
-                slider.value = Sound.instance.GetVolume("BGM");
-                break;
-            case SoundKind.SE:
-                slider.value = Sound.instance.GetVolume("SE");
-                break;
+            if (!activeSound) { Debug.Log("Sound‚ª‚ ‚è‚Ü‚¹‚ñ", gameObject); return; }
+
+            slider = GetComponent<Slider>();
+
+            switch (kind)
+            {
+                case SoundKind.BGM:
+                    slider.value = Sound.instance.GetVolume("BGM");
+                    break;
+                case SoundKind.SE:
+                    slider.value = Sound.instance.GetVolume("SE");
+                    break;
+            }
         }
     }
 }

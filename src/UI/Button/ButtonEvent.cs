@@ -1,11 +1,14 @@
 using System;
-using R3;
+using UniRx;
 using UnityEngine;
 
-public class ButtonEvent : MonoBehaviour
+namespace RaruLib
 {
-    private Subject<Unit> clickSubject = new Subject<Unit>();
-    public Observable<Unit> OnClickEvent => clickSubject;
+    public class ButtonEvent : MonoBehaviour
+    {
+        private Subject<Unit> clickSubject = new Subject<Unit>();
+        public IObservable<Unit> OnClickEvent => clickSubject;
 
-    public void OnClick() { clickSubject.OnNext(Unit.Default); }
+        public void OnClick() { clickSubject.OnNext(Unit.Default); }
+    }
 }

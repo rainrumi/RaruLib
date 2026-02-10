@@ -1,7 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using R3;
+using UniRx;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -18,11 +18,11 @@ namespace RaruLib
 
         // ロードが開始した時のイベント
         private Subject<Unit> LoadStartSubject = new Subject<Unit>();
-        public Observable<Unit> OnLoadStart => LoadStartSubject;
+        public IObservable<Unit> OnLoadStart => LoadStartSubject;
 
         // ロードが終了した時のイベント
         private Subject<Unit> LoadFinishSubject = new Subject<Unit>();
-        public Observable<Unit> OnLoadFinish => LoadFinishSubject;
+        public IObservable<Unit> OnLoadFinish => LoadFinishSubject;
 
         private void Awake()
         {
