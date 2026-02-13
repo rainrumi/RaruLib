@@ -1,21 +1,23 @@
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using UniRx;
+using R3;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace RaruLib
 {
-    public enum ButtonViewKind
+    public enum ViewKind
     {
         View_ScaleIn,
         Hide_ScaleOut,
         View_FadeIn,
-        Hide_FadeOut
+        Hide_FadeOut,
+        View_SlideInFromTop_FadeIn,
+        Hide_SlideOutToTop_FadeOut
     }
 
     [RequireComponent(typeof(CanvasGroup))]
-    public class ButtonEventView : MonoBehaviour
+    public class UiViewAsync : MonoBehaviour
     {
         private CanvasGroup _canvasGroup;
         private RectTransform _rectTransform;
@@ -24,23 +26,13 @@ namespace RaruLib
         private float _initAlpha;
 
         [SerializeField] private string memo = "";    // 何するかのメモ（分からなくなるため、インスペクタ用）
-        [SerializeField] private ButtonEvent buttonEvent;
-        [SerializeField] private ButtonViewKind viewKind;
+        [SerializeField] private ViewKind viewKind;
         [SerializeField] private float duration = 1f;
         [SerializeField, Range(0, 1)] private float amountScale = 0.5f;
         //[SerializeField] private float amountFade = 0.5f;
 
-        private void Start()
+        protected virtual void Start()
         {
-            if (buttonEvent != null)
-            {
-                buttonEvent.OnClickEvent
-                    .Subscribe(_ =>
-                    {
-                        ViewEvent().Forget();
-                    }).AddTo(this);
-            }
-
             _canvasGroup = GetComponent<CanvasGroup>();
             _rectTransform = GetComponent<RectTransform>();
             _initPosition = _rectTransform.localPosition;
@@ -48,7 +40,7 @@ namespace RaruLib
             _initAlpha = _canvasGroup.alpha;
         }
 
-        public async UniTask ViewEvent()
+        public async UniTask ViewEventAsync()
         {
             if (!this) return;
 
@@ -57,7 +49,7 @@ namespace RaruLib
 
             switch (viewKind)
             {
-                case ButtonViewKind.View_ScaleIn:
+                case ViewKind.View_ScaleIn:
                     SetTrigger(true);
                     _rectTransform.localScale =
                         new Vector3(amountScale, amountScale, amountScale);
@@ -69,7 +61,7 @@ namespace RaruLib
                         .AsyncWaitForCompletion();
                     break;
 
-                case ButtonViewKind.Hide_ScaleOut:
+                case ViewKind.Hide_ScaleOut:
                     _rectTransform.localScale = _initScale;
 
                     await _rectTransform
@@ -81,7 +73,7 @@ namespace RaruLib
                     SetTrigger(false);
                     break;
 
-                case ButtonViewKind.View_FadeIn:
+                case ViewKind.View_FadeIn:
                     SetTrigger(true);
                     _canvasGroup.alpha = 0;
 
@@ -92,7 +84,7 @@ namespace RaruLib
                         .AsyncWaitForCompletion();
                     break;
 
-                case ButtonViewKind.Hide_FadeOut:
+                case ViewKind.Hide_FadeOut:
                     _canvasGroup.alpha = 1;
 
                     await _canvasGroup
@@ -111,6 +103,18 @@ namespace RaruLib
             if (this == null) return;
             _canvasGroup.blocksRaycasts = set;
             _canvasGroup.alpha = set ? 1 : 0;
+        }
+
+        private async UniTaskVoid FadeIn()
+        {
+            SetTrigger(true);
+            _canvasGroup.alpha = 0;
+
+            await _canvasGroup
+                .DOFade(1, duration)
+                .SetEase(Ease.OutCubic)
+                .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
+                .AsyncWaitForCompletion();
         }
 
         private void OnDestroy()

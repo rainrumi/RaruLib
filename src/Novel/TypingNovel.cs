@@ -1,7 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using TMPro;
-using UniRx;
+using R3;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,7 +23,7 @@ namespace RaruLib
         [SerializeField] private string soundName = "popopo";
 
         private Subject<Unit> WaitNextSubject = new Subject<Unit>();
-        public IObservable<Unit> OnWaitNext => WaitNextSubject;
+        public Observable<Unit> OnWaitNext => WaitNextSubject;
 
         private bool isTyping;
 
