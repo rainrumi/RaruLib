@@ -8,12 +8,8 @@ namespace RaruLib
 {
     public enum ViewKind
     {
-        View_ScaleIn,
-        Hide_ScaleOut,
-        View_FadeIn,
-        Hide_FadeOut,
-        View_SlideInFromTop_FadeIn,
-        Hide_SlideOutToTop_FadeOut
+        View,
+        Hide
     }
 
     [RequireComponent(typeof(CanvasGroup))]
@@ -24,12 +20,22 @@ namespace RaruLib
         private Vector3 _initPosition;
         private Vector3 _initScale;
         private float _initAlpha;
+        private Vector2 _resoltion => new Vector2(Screen.currentResolution.width, Screen.currentResolution.height);
+        private Vector2 amountSlide => new Vector2(_resoltion.x * viewStartPosFactorX, _resoltion.y * viewStartPosFactorY);
 
         [SerializeField] private string memo = "";    // 何するかのメモ（分からなくなるため、インスペクタ用）
-        [SerializeField] private ViewKind viewKind;
-        [SerializeField] private float duration = 1f;
-        [SerializeField, Range(0, 1)] private float amountScale = 0.5f;
-        //[SerializeField] private float amountFade = 0.5f;
+        [SerializeField] private Ease ease = Ease.OutCubic;
+        [Header("アニメーションの種類")]
+        [SerializeField] private ViewKind viewKind = ViewKind.View;
+        [Header("所要時間")]
+        [SerializeField] private float duration = 0.3f;
+        [Header("Alpha")]
+        [SerializeField, Range(0, 1)] private float viewStartAlpha = 0f;
+        [Header("拡大率")]
+        [SerializeField, Range(0, 1)] private float viewStartScale = 0.5f;
+        [Header("位置変化率")]
+        [SerializeField, Range(-1, 1)] private float viewStartPosFactorX = 0f;
+        [SerializeField, Range(-1, 1)] private float viewStartPosFactorY = 0f;
 
         protected virtual void Start()
         {
@@ -49,50 +55,13 @@ namespace RaruLib
 
             switch (viewKind)
             {
-                case ViewKind.View_ScaleIn:
+                case ViewKind.View:
                     SetTrigger(true);
-                    _rectTransform.localScale =
-                        new Vector3(amountScale, amountScale, amountScale);
-
-                    await _rectTransform
-                        .DOScale(_initScale, duration)
-                        .SetEase(Ease.OutCubic)
-                        .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
-                        .AsyncWaitForCompletion();
+                    await UniTask.WhenAll(ScaleIn(), SlideIn(), FadeIn());
                     break;
 
-                case ViewKind.Hide_ScaleOut:
-                    _rectTransform.localScale = _initScale;
-
-                    await _rectTransform
-                        .DOScale(amountScale, duration)
-                        .SetEase(Ease.OutCubic)
-                        .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
-                        .AsyncWaitForCompletion();
-
-                    SetTrigger(false);
-                    break;
-
-                case ViewKind.View_FadeIn:
-                    SetTrigger(true);
-                    _canvasGroup.alpha = 0;
-
-                    await _canvasGroup
-                        .DOFade(1, duration)
-                        .SetEase(Ease.OutCubic)
-                        .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
-                        .AsyncWaitForCompletion();
-                    break;
-
-                case ViewKind.Hide_FadeOut:
-                    _canvasGroup.alpha = 1;
-
-                    await _canvasGroup
-                        .DOFade(0, duration)
-                        .SetEase(Ease.OutCubic)
-                        .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
-                        .AsyncWaitForCompletion();
-
+                case ViewKind.Hide:
+                    await UniTask.WhenAll(ScaleOut(), SlideOut(), FadeOut());
                     SetTrigger(false);
                     break;
             }
@@ -105,14 +74,69 @@ namespace RaruLib
             _canvasGroup.alpha = set ? 1 : 0;
         }
 
-        private async UniTaskVoid FadeIn()
+        private async UniTask ScaleIn()
         {
-            SetTrigger(true);
-            _canvasGroup.alpha = 0;
+            _rectTransform.localScale =
+                new Vector3(viewStartScale, viewStartScale, 0);
+
+            await _rectTransform
+                .DOScale(_initScale, duration)
+                .SetEase(ease)
+                .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
+                .AsyncWaitForCompletion();
+        }
+
+        private async UniTask ScaleOut()
+        {
+            _rectTransform.localScale = _initScale;
+
+            await _rectTransform
+                .DOScale(viewStartScale, duration)
+                .SetEase(ease)
+                .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
+                .AsyncWaitForCompletion();
+        }
+
+        private async UniTask FadeIn()
+        {
+            _canvasGroup.alpha = viewStartAlpha;
 
             await _canvasGroup
                 .DOFade(1, duration)
-                .SetEase(Ease.OutCubic)
+                .SetEase(ease)
+                .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
+                .AsyncWaitForCompletion();
+        }
+
+        private async UniTask FadeOut()
+        {
+            _canvasGroup.alpha = 1;
+
+            await _canvasGroup
+                .DOFade(0, duration)
+                .SetEase(ease)
+                .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
+                .AsyncWaitForCompletion();
+        }
+
+        private async UniTask SlideIn()
+        {
+            _rectTransform.localPosition = amountSlide;
+
+            await _rectTransform
+                .DOAnchorPos(_initPosition, duration)
+                .SetEase(ease)
+                .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
+                .AsyncWaitForCompletion();
+        }
+
+        private async UniTask SlideOut()
+        {
+            _rectTransform.localPosition = _initPosition;
+
+            await _rectTransform
+                .DOAnchorPos(amountSlide, duration)
+                .SetEase(ease)
                 .SetLink(gameObject, LinkBehaviour.KillOnDestroy)
                 .AsyncWaitForCompletion();
         }
