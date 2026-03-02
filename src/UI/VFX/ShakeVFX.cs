@@ -9,20 +9,52 @@ namespace RaruLib
         [SerializeField] float strength = 0.1f;
         [SerializeField] int vibrato = 10;
         [SerializeField] float randomness = 90f;
+        [SerializeField] bool onAwake = false;
+        [SerializeField] bool isLoop = true;
+        [SerializeField] bool onFadeout = false;
 
         Tween shakeTween;
 
-        void Start()
+        private void Awake()
         {
+            if(onAwake)
+            {
+                shakeTween?.Kill();
+                shakeTween = transform.DOShakePosition(
+                        duration,
+                        strength,
+                        vibrato,
+                        randomness,
+                        fadeOut: onFadeout
+                    )
+                    .SetEase(Ease.Linear);
+                if (isLoop)
+                {
+                    shakeTween.SetLoops(-1, LoopType.Restart);
+                }
+            }
+        }
+
+        public void ShakePlay()
+        {
+            shakeTween?.Kill();
             shakeTween = transform.DOShakePosition(
                     duration,
                     strength,
                     vibrato,
                     randomness,
-                    fadeOut: false
+                    fadeOut: onFadeout
                 )
-                .SetLoops(-1, LoopType.Restart)
                 .SetEase(Ease.Linear);
+            if (isLoop)
+            {
+                shakeTween.SetLoops(-1, LoopType.Restart);
+            }
+        }
+
+        public void ShakeStop()
+        {
+            shakeTween?.Kill();
         }
 
         void OnDestroy()

@@ -66,7 +66,10 @@ namespace RaruLib
             }
             else
             {
+#if UNITY_EDITOR                
                 Debug.Log($"重複した{instance}を削除します");
+#endif
+
                 Destroy(instance.gameObject);
             }
 
@@ -102,7 +105,12 @@ namespace RaruLib
         public float GetVolume(string groupName)
         {
             if (!groupDict.ContainsKey(groupName))
-            { Debug.Log($"{groupName}は存在しないカテゴリです"); return 0; }
+            {
+#if UNITY_EDITOR
+                Debug.Log($"{groupName}は存在しないカテゴリです");
+#endif
+                return 0; 
+            }
 
             return groupDict[groupName].volume;
         }
@@ -114,11 +122,40 @@ namespace RaruLib
         public void ChangeVolume(string groupName, float newVolume)
         {
             if (!groupDict.ContainsKey(groupName))
-            { Debug.Log($"{groupName}は存在しないカテゴリです"); return; }
+            { 
+#if UNITY_EDITOR
+                Debug.Log($"{groupName}は存在しないカテゴリです"); 
+#endif                
+                return; 
+            }
 
             groupDict[groupName].volume = newVolume;
             foreach (var dataSet in groupDict[groupName].soundDict)
             { dataSet.Value.volume = groupDict[groupName].volume; }
+        }
+
+        /***************************************************************
+        * 開始位置変更
+        ***************************************************************/
+        /// <param name="groupName">カテゴリ</param>
+        /// <param name="soundName">音の名称</param>
+        public void ChangeStartTime(string groupName, string soundName, float time)
+        {
+            if (!groupDict.ContainsKey(groupName))
+            { 
+#if UNITY_EDITOR
+                Debug.Log($"{groupName}は存在しないカテゴリです"); 
+#endif                
+                return; 
+            }
+            if (!groupDict[groupName].soundDict.ContainsKey(soundName))
+            { 
+#if UNITY_EDITOR
+                Debug.Log($"{soundName}は存在しない音源名です"); 
+#endif                
+                return; 
+            }
+            groupDict[groupName].soundDict[soundName].time = time;
         }
 
         /***************************************************************
@@ -129,9 +166,19 @@ namespace RaruLib
         public void Play(string groupName, string soundName)
         {
             if (!groupDict.ContainsKey(groupName))
-            { Debug.Log($"{groupName}は存在しないカテゴリです"); return; }
+            {
+#if UNITY_EDITOR                
+                Debug.Log($"{groupName}は存在しないカテゴリです"); 
+#endif                
+                return; 
+            }
             if (!groupDict[groupName].soundDict.ContainsKey(soundName))
-            { Debug.Log($"{soundName}は存在しない音源名です"); return; }
+            {
+#if UNITY_EDITOR
+                Debug.Log($"{soundName}は存在しない音源名です"); 
+#endif                
+                return; 
+            }
             groupDict[groupName].soundDict[soundName].Play();
         }
 
@@ -143,11 +190,26 @@ namespace RaruLib
         public async UniTaskVoid Play(string groupName, string soundName, float duration)
         {
             if (!groupDict.ContainsKey(groupName))
-            { Debug.Log($"{groupName}は存在しないカテゴリです"); return; }
+            {
+#if UNITY_EDITOR
+                Debug.Log($"{groupName}は存在しないカテゴリです"); 
+#endif                
+                return; 
+            }
             if (!groupDict[groupName].soundDict.ContainsKey(soundName))
-            { Debug.Log($"{soundName}は存在しない音源名です"); return; }
+            { 
+#if UNITY_EDITOR
+                Debug.Log($"{soundName}は存在しない音源名です"); 
+#endif                
+                return; 
+            }
             if (groupDict[groupName].soundDict[soundName].isPlaying)
-            { Debug.Log($"既に再生中です"); return; }
+            { 
+#if UNITY_EDITOR
+                Debug.Log($"既に再生中です");
+#endif
+                return; 
+            }
 
             float cacheVolume = GetVolume(groupName);
 
@@ -167,9 +229,19 @@ namespace RaruLib
         public void Stop(string groupName, string soundName)
         {
             if (!groupDict.ContainsKey(groupName))
-            { Debug.Log($"{groupName}は存在しないカテゴリです"); return; }
+            { 
+#if UNITY_EDITOR
+                Debug.Log($"{groupName}は存在しないカテゴリです"); 
+#endif                
+                return; }
             if (!groupDict[groupName].soundDict.ContainsKey(soundName))
-            { Debug.Log($"{soundName}は存在しない音源名です"); return; }
+            { 
+#if UNITY_EDITOR
+                Debug.Log($"{soundName}は存在しない音源名です"); 
+#endif                
+                return; 
+            }
+            if (this == null) return;
 
             groupDict[groupName].soundDict[soundName].Stop();
         }
@@ -182,9 +254,18 @@ namespace RaruLib
         public async UniTaskVoid Stop(string groupName, string soundName, float duration)
         {
             if (!groupDict.ContainsKey(groupName))
-            { Debug.Log($"{groupName}は存在しないカテゴリです"); return; }
+            { 
+#if UNITY_EDITOR
+                Debug.Log($"{groupName}は存在しないカテゴリです"); 
+#endif                
+                return; }
             if (!groupDict[groupName].soundDict.ContainsKey(soundName))
-            { Debug.Log($"{soundName}は存在しない音源名です"); return; }
+            { 
+#if UNITY_EDITOR
+                Debug.Log($"{soundName}は存在しない音源名です"); 
+#endif                
+                return; 
+            }
 
             float cacheVolume = GetVolume(groupName);
 

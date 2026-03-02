@@ -27,7 +27,7 @@ namespace RaruLib
         public List<DialogueEntry> dialogues;
     }
 
-    [CreateAssetMenu(fileName = nameof(TalkInfo), menuName = "Settings/" + nameof(TalkInfo))]
+    [CreateAssetMenu(fileName = nameof(TalkInfo), menuName = "Settings/RaruLib/" + nameof(TalkInfo))]
     public class TalkInfo : ScriptableObject
     {
         [SerializeField] private List<DialogueData> entries;

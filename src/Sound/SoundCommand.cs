@@ -55,5 +55,20 @@ namespace RaruLib
         /**************************************************
          * 
          * ***********************************************/
+
+        public void CallPlaySE(string name, float duration)
+        {
+            if (this == null) return;
+            Sound.instance.Play("SE", name, duration).Forget();
+        }
+        public void CallStopSE(string name, float duration)
+        {
+            if (this == null) return;
+            Sound.instance.Stop("SE", name, duration).Forget();
+        }
+
+        /**************************************************
+         * 
+         * ***********************************************/
     }
 }

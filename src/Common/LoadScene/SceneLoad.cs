@@ -14,7 +14,6 @@ namespace RaruLib
 
         [SerializeField] private Canvas _canvas;
         [SerializeField] private Image _image;
-        [SerializeField] private float duration = 1.0f;
 
         // ロードが開始した時のイベント
         private Subject<Unit> LoadStartSubject = new Subject<Unit>();
@@ -32,9 +31,8 @@ namespace RaruLib
             _canvas.enabled = false;
         }
 
-        public async UniTask SceneLoad_Fade(string name)
+        public async UniTask SceneLoad_Fade(string name, float fadeInDuration = 0.5f, float fadeOutDuration = 0.5f)
         {
-            var halfDuration = duration / 2;
             var color = _image.color;
             color.a = 0;
 
@@ -44,14 +42,39 @@ namespace RaruLib
             await UniTask.Yield();
 
             _image.DOComplete();
-            _image.DOFade(1f, halfDuration).SetEase(Ease.OutQuad);
-            await UniTask.WaitForSeconds(halfDuration);
+            _image.DOFade(1f, fadeInDuration).SetEase(Ease.OutQuad);
+            await UniTask.WaitForSeconds(fadeInDuration);
 
             SceneManager.LoadScene(name);
 
             _image.DOComplete();
-            _image.DOFade(0f, halfDuration).SetEase(Ease.OutQuad);
-            await UniTask.WaitForSeconds(halfDuration);
+            _image.DOFade(0f, fadeOutDuration).SetEase(Ease.OutQuad);
+            await UniTask.WaitForSeconds(fadeOutDuration);
+
+            _canvas.enabled = false;
+            await UniTask.Yield();
+
+            LoadFinishSubject.OnNext(Unit.Default);
+        }
+
+        public async UniTask SceneLoad_Fade(string name, Color fadeColor, float fadeInTime = 0.5f, float fadeOutTime = 0.5f)
+        {
+            _image.color = new Color(fadeColor.r, fadeColor.g, fadeColor.b, 0);
+
+            LoadStartSubject.OnNext(Unit.Default);
+
+            _canvas.enabled = true;
+            await UniTask.Yield();
+
+            _image.DOComplete();
+            _image.DOFade(1f, fadeInTime).SetEase(Ease.OutQuad);
+            await UniTask.WaitForSeconds(fadeInTime);
+
+            SceneManager.LoadScene(name);
+
+            _image.DOComplete();
+            _image.DOFade(0f, fadeOutTime).SetEase(Ease.OutQuad);
+            await UniTask.WaitForSeconds(fadeOutTime);
 
             _canvas.enabled = false;
             await UniTask.Yield();

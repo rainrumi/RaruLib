@@ -10,6 +10,8 @@ namespace RaruLib
     [Serializable]
     public class TalkDataSet
     {
+        public UiViewAsync uiViewAsync_View;
+        public UiViewAsync uiViewAsync_Hide;
         public Image textBoxImg;
         public TextMeshProUGUI textBox;
     }
@@ -17,7 +19,7 @@ namespace RaruLib
     public class TypingNovel : MonoBehaviour
     {
         [SerializeField] TalkDataSet[] talkDataSet;
-        [SerializeField] float textDuration = 1f;
+        [SerializeField] float textDuration = 0.05f;
         [Header("音いるなら")]
         [SerializeField] private SoundCommand soundCommand;
         [SerializeField] private string soundName = "popopo";
@@ -35,8 +37,8 @@ namespace RaruLib
 
         private void SetViewTalkData(TextBoxKind kind, bool isSet)
         {
-            if (talkDataSet[(int)kind].textBoxImg != null) talkDataSet[(int)kind].textBoxImg.enabled = isSet;
-            if (talkDataSet[(int)kind].textBox != null) talkDataSet[(int)kind].textBox.enabled = isSet;
+            if (!isSet && talkDataSet[(int)kind].uiViewAsync_View != null) talkDataSet[(int)kind].uiViewAsync_View.ViewEventAsync().Forget();
+            else if (isSet && talkDataSet[(int)kind].uiViewAsync_Hide != null) talkDataSet[(int)kind].uiViewAsync_Hide.ViewEventAsync().Forget();
         }
 
         private async UniTask SetTypingText(TextBoxKind kind, string _text)
@@ -51,6 +53,7 @@ namespace RaruLib
 
             foreach (var text in _text)
             {
+                // 後々クリックで飛ばせるようにします！（2/14 22:40）
                 await UniTask.WaitForSeconds(textDuration, cancellationToken: token);
                 if (soundCommand != null) soundCommand.CallPlaySE(soundName);
                 talkDataSet[(int)kind].textBox.text += text;
