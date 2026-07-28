@@ -1,5 +1,6 @@
 ﻿using DG.Tweening;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace RaruLib
 {
@@ -26,7 +27,7 @@ namespace RaruLib
         void Update()
         {
             // マウスのスクリーン座標を取得 (0,0) 〜 (Screen.width, Screen.height)
-            Vector2 mousePos = Input.mousePosition;
+            Vector2 mousePos = Mouse.current?.position.ReadValue() ?? Vector2.zero;
             if (reverse) mousePos = -mousePos;
 
             // 画面の中心を(0,0)とした -1.0 〜 1.0 の割合に変換
