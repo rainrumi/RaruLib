@@ -9,6 +9,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(SoundCommand))]
 public class GamePhase : MonoBehaviour
 {
+    /*
     private GameSceneData gsd => GameSceneData.Instance;
     private SoundCommand _soundCommand;
 
@@ -35,7 +36,7 @@ public class GamePhase : MonoBehaviour
     {
         var token = this.GetCancellationTokenOnDestroy();
 
-        /*switch (kind)
+        switch (kind)
         {
             case GamePhaseKind.Initialization:      // èâä˙âª
 
@@ -46,7 +47,7 @@ public class GamePhase : MonoBehaviour
 
                 gsd.SetPhase(GamePhaseKind.GameStart);
                 break;
-        }*/
+        }
     }
 
     private void OnDestroy()
@@ -55,4 +56,6 @@ public class GamePhase : MonoBehaviour
         wave_ct?.Dispose();
         wave_ct = null;
     }
+    */
+
 }

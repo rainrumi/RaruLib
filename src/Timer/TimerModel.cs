@@ -36,6 +36,8 @@ public class TimerModel : MonoBehaviour
     {
         if(_timerKind == TimerKind.Active)
         {
+            Debug.LogError("コメントアウトを解除してください");
+            /*
             NowTimer = Mathf.Max(0f, NowTimer - Time.deltaTime * GameSceneData.Instance.GameSpeed);
             OnUpdateTimeSubject.OnNext(NowTimer);
 
@@ -44,6 +46,7 @@ public class TimerModel : MonoBehaviour
                 TimerKind = TimerKind.InActive;
                 OnTimeUpSubject.OnNext(Unit.Default);
             }
+            */
         }
     }
 }
