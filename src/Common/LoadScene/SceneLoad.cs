@@ -42,14 +42,12 @@ namespace RaruLib
             await UniTask.Yield();
 
             _image.DOComplete();
-            _image.DOFade(1f, fadeInDuration).SetEase(Ease.OutQuad);
-            await UniTask.WaitForSeconds(fadeInDuration);
+            await _image.DOFade(1f, fadeInDuration).SetEase(Ease.OutQuad);
 
             SceneManager.LoadScene(name);
 
             _image.DOComplete();
-            _image.DOFade(0f, fadeOutDuration).SetEase(Ease.OutQuad);
-            await UniTask.WaitForSeconds(fadeOutDuration);
+            await _image.DOFade(0f, fadeOutDuration).SetEase(Ease.OutQuad);
 
             _canvas.enabled = false;
             await UniTask.Yield();
@@ -67,14 +65,12 @@ namespace RaruLib
             await UniTask.Yield();
 
             _image.DOComplete();
-            _image.DOFade(1f, fadeInTime).SetEase(Ease.OutQuad);
-            await UniTask.WaitForSeconds(fadeInTime);
+            await _image.DOFade(1f, fadeInTime).SetEase(Ease.OutQuad);
 
             SceneManager.LoadScene(name);
 
             _image.DOComplete();
-            _image.DOFade(0f, fadeOutTime).SetEase(Ease.OutQuad);
-            await UniTask.WaitForSeconds(fadeOutTime);
+            await _image.DOFade(0f, fadeOutTime).SetEase(Ease.OutQuad);
 
             _canvas.enabled = false;
             await UniTask.Yield();
