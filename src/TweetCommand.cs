@@ -4,7 +4,7 @@ namespace RaruLib
 {
     public class TweetCommand : MonoBehaviour, ITweetCommand
     {
-        private const string ID = "gamelink";
+        private const string ID = "kiralumirr-ur03";
 
         [SerializeField] private string tag1 = "タイトル";
         [SerializeField] private string tag2 = "";
