@@ -1,22 +1,25 @@
 using TMPro;
 using UnityEngine;
 
-public class TimerView : MonoBehaviour
+namespace RaruLib
 {
-    private bool _onAlert = false;
-    public bool OnAlert => _onAlert;
-
-    [SerializeField] TextMeshProUGUI _timerTMP;
-    [SerializeField] Animator _animator;
-
-    public void UpdateText( string text )
+    public class TimerView : MonoBehaviour
     {
-        _timerTMP.text = text;
-    }
+        private bool _onAlert = false;
+        public bool OnAlert => _onAlert;
 
-    public void SetAlert(bool set)
-    {
-        _animator.SetBool("IsAlert", set);
-        _onAlert = set;
+        [SerializeField] TextMeshProUGUI _timerTMP;
+        [SerializeField] Animator _animator;
+
+        public void UpdateText(string text)
+        {
+            _timerTMP.text = text;
+        }
+
+        public void SetAlert(bool set)
+        {
+            _animator.SetBool("IsAlert", set);
+            _onAlert = set;
+        }
     }
 }
