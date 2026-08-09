@@ -2,7 +2,7 @@
 
 namespace RaruLib
 {
-    public class TweetCommand : MonoBehaviour
+    public class TweetCommand : MonoBehaviour, ITweetCommand
     {
         private const string ID = "gamelink";
 
