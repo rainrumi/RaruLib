@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RaruLib
 {
-    public class SoundCommand : MonoBehaviour
+    public class SoundCommand : MonoBehaviour, ISoundCommand
     {
         /**************************************************
          * 
