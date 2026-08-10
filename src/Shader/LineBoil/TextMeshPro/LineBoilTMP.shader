@@ -133,8 +133,8 @@ SubShader {
 
 		#include "UnityCG.cginc"
 		#include "UnityUI.cginc"
-		#include "../../../../TextMesh Pro/Shaders/TMPro_Properties.cginc"
-		#include "../../../../TextMesh Pro/Shaders/TMPro.cginc"
+		#include "../../../../../../TextMesh Pro/Shaders/TMPro_Properties.cginc"
+		#include "../../../../../../TextMesh Pro/Shaders/TMPro.cginc"
 
 		struct vertex_t
 		{
@@ -269,11 +269,9 @@ SubShader {
 			float swichValue = step(swichTime, nowSwichDuration);
 			// í∏ì_ç¿ïWÇà⁄ìÆ
 			float4 _position = input.position + swichValue;
-			float noiseFactor1 = Random(_position.xy) * _Factor;
-			float noiseFactor2 = noiseFactor1 * 2;	// -1Å`1ÇÃílÇ…ägëÂ
-			float noiseFactor3 = noiseFactor2 - 1;	// -2Å`0Ç…ïœçX
-			float noiseFactor = noiseFactor3 * _Amount;
-			output.position += noiseFactor;
+			float noiseFactor1 = (Random(_position.xy) * 2 - 1);	// -1Å`1Ç…ïœçX
+			float noiseFactor2 = noiseFactor1 * _Factor * _Amount;
+			output.position.xy += noiseFactor2;
 			
 
 			return output;

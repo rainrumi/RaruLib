@@ -15,6 +15,7 @@ namespace RaruLib
 
         private Material material;
 
+        private int _mainTexId = Shader.PropertyToID("_MainTex");
         private int _amountId = Shader.PropertyToID("_Amount");
         private int _factorId = Shader.PropertyToID("_Factor");
         private int _fpsId = Shader.PropertyToID("_fps");
@@ -41,6 +42,7 @@ namespace RaruLib
             }
 
             // プロパティのセット
+            material.SetTexture(_mainTexId, sprite.sprite.texture);
             material.SetFloat(_amountId, amount);
             material.SetFloat(_factorId, factor);
             material.SetFloat(_fpsId, fps);
