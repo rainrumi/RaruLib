@@ -6,6 +6,7 @@ namespace RaruLib
     public class LineBoil : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer sprite;
+        [SerializeField] private Image image;
         [SerializeField] private float amount = 0.01f;
         [SerializeField] private float factor = 10.0f;
         [SerializeField] private float fps = 10f;
@@ -29,6 +30,39 @@ namespace RaruLib
         protected virtual void UpdateMaterial()
         {
             Shader s = Shader.Find("RaruLib/LineBoil/LineBoil");
+            if (s == null)
+            {
+                Debug.LogError($"{name}: LineBoil shader was not found.", this);
+                return;
+            }
+
+            Texture targetTexture;
+            if (sprite != null)
+            {
+                if (sprite.sprite == null)
+                {
+                    Debug.LogError($"{name}: The assigned SpriteRenderer has no Sprite.", this);
+                    return;
+                }
+
+                targetTexture = sprite.sprite.texture;
+            }
+            else if (image != null)
+            {
+                if (image.sprite == null)
+                {
+                    Debug.LogError($"{name}: The assigned Image has no Sprite.", this);
+                    return;
+                }
+
+                targetTexture = image.sprite.texture;
+            }
+            else
+            {
+                Debug.LogError($"{name}: Assign either a SpriteRenderer or Image to LineBoil.", this);
+                return;
+            }
+
             material = new Material(s);
             material.hideFlags = HideFlags.HideAndDontSave;
 
@@ -41,14 +75,28 @@ namespace RaruLib
                 _noiseVector = new Vector2(x, y);
             }
 
-            // プロパティのセット
-            material.SetTexture(_mainTexId, sprite.sprite.texture);
+            material.SetTexture(_mainTexId, targetTexture);
             material.SetFloat(_amountId, amount);
             material.SetFloat(_factorId, factor);
             material.SetFloat(_fpsId, fps);
             material.SetVector(_noiseVecId, _noiseVector);
 
-            sprite.material = material;
+            if (sprite != null)
+            {
+                sprite.sharedMaterial = material;
+            }
+            else
+            {
+                image.material = material;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (material != null)
+            {
+                Destroy(material);
+            }
         }
     }
 }
