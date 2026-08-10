@@ -6,11 +6,12 @@ namespace RaruLib
     public class TitleInitialize : MonoBehaviour
     {
         private SoundCommand _soundCommand;
+        [SerializeField] private string _bgmName = "BGM1";
 
         private void Start()
         {
             _soundCommand = GetComponent<SoundCommand>();
-            //_soundCommand.CallStopBGM("main");
+            _soundCommand.CallPlayBGM(_bgmName);
         }
     }
 }
