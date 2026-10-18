@@ -14,7 +14,7 @@ namespace RaruLib
         // シナリオをロード
         public byte[] LoadScenario(string key)
         {
-            return LoadMrb($"Novel/Scenarios/{key}");
+            return LoadMrb($"Novel/Scenarios/{System.IO.Path.GetFileNameWithoutExtension(key)}");
         }
 
         // mrb拡張子データをロード
