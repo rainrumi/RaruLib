@@ -110,6 +110,8 @@ namespace RaruLib
             nameTxt.text = "";
             bodyTxt.text = "";
 
+            GameObject textBoxRoot = nameTxt.transform.parent.gameObject;
+            textBoxRoot.SetActive(true);
             nameTxt.gameObject.SetActive(true);
             bodyTxt.gameObject.SetActive(true);
 
@@ -137,8 +139,7 @@ namespace RaruLib
                     UniTask.Delay(TimeSpan.FromSeconds(autoWait), cancellationToken: cancellationToken));
             }
 
-            nameTxt.gameObject.SetActive(false);
-            bodyTxt.gameObject.SetActive(false);
+            textBoxRoot.SetActive(false);
         }
 
         // ‘I‘ðŽˆ•\Ž¦
