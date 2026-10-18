@@ -8,5 +8,8 @@ namespace RaruLib
         float AutoWaitPerChar { get; }
         bool IsAuto { get; }
         string Popopo { get; }
+        float StandSlideDistance { get; }
+        float StandJumpHeight { get; }
+        float StandShakeDistance { get; }
     }
 }

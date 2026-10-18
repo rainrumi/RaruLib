@@ -28,5 +28,29 @@ namespace RaruLib
 
             context.MRubySharedVariables()!.Set(command.StateKey, index);
         }
+
+        // ”wŒi•\¦‚ğˆÏ÷
+        public async UniTask On(BgCommand command, CancellationToken ct)
+        {
+            await _view.ShowBackgroundAsync(command.Path, command.FadeOut, command.FadeIn, ct);
+        }
+
+        // ”Ô†‚Ì—§‚¿ŠG‚ğ•\¦
+        public async UniTask On(StandCommand command, CancellationToken ct)
+        {
+            await _view.ShowStandAsync(command.Id, command.Path, command.Position, command.Effect, command.Duration, ct);
+        }
+
+        // ”Ô†‚Ì—§‚¿ŠG‚ğ‘Şê
+        public async UniTask On(StandHideCommand command, CancellationToken ct)
+        {
+            await _view.HideStandAsync(command.Id, command.Duration, ct);
+        }
+
+        // ”Ô†‚Ì—§‚¿ŠG‚ğ“®ì
+        public async UniTask On(StandEffectCommand command, CancellationToken ct)
+        {
+            await _view.PlayStandEffectAsync(command.Id, command.Effect, command.Duration, ct);
+        }
     }
 }

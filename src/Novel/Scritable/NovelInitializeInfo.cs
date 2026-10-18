@@ -22,5 +22,17 @@ namespace RaruLib
 
         [SerializeField, Tooltip("Ä¶Žž‚Ì‰¹–¼i¦–¢Žg—p‚È‚ç‹ó•¶Žšj")] private string _popopo;
         public string Popopo => _popopo;
+
+        [SerializeField, Tooltip("—§‚¿ŠG‚ª“oêŽž‚ÉˆÚ“®‚·‚éCanvasã‚Ì‹——£"), Min(0.0f)]
+        private float _standSlideDistance = 160.0f; // “oê‚ÌˆÚ“®‹——£
+        public float StandSlideDistance => _standSlideDistance;
+
+        [SerializeField, Tooltip("—§‚¿ŠG‚ªƒWƒƒƒ“ƒv‚·‚éCanvasã‚Ì‚‚³"), Min(0.0f)]
+        private float _standJumpHeight = 48.0f; // ƒWƒƒƒ“ƒv‚Ì‚‚³
+        public float StandJumpHeight => _standJumpHeight;
+
+        [SerializeField, Tooltip("—§‚¿ŠG‚ª¶‰E‚É—h‚ê‚éCanvasã‚Ì‹——£"), Min(0.0f)]
+        private float _standShakeDistance = 24.0f; // —h‚ê‚Ì‹——£
+        public float StandShakeDistance => _standShakeDistance;
     }
 }

@@ -30,6 +30,10 @@ namespace RaruLib
             {
                 x.AddCommand<DialogCommand>("dialog");
                 x.AddCommand<ChoiceCommand>("choice");
+                x.AddCommand<BgCommand>("bg");
+                x.AddCommand<StandCommand>("stand");
+                x.AddCommand<StandHideCommand>("stand_hide");
+                x.AddCommand<StandEffectCommand>("stand_fx");
             });
         }
 
