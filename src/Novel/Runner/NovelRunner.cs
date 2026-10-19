@@ -29,6 +29,7 @@ namespace RaruLib
             _mrb.DefineVitalRouter(x =>
             {
                 x.AddCommand<DialogCommand>("dialog");
+                x.AddCommand<MessageBoxCommand>("messagebox");
                 x.AddCommand<ChoiceCommand>("choice");
                 x.AddCommand<BgCommand>("bg");
                 x.AddCommand<StandCommand>("stand");

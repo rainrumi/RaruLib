@@ -15,6 +15,22 @@ namespace RaruLib
             _view = view;
         }
 
+        /// <summary>Rubyの表示指定を、取消済みでない場合だけViewへ反映する。</summary>
+        // 表示命令を転送
+        public UniTask On(MessageBoxCommand command, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (command.IsVisible)
+            {
+                _view.ShowMessageBox();
+            }
+            else
+            {
+                _view.HideMessageBox();
+            }
+            return UniTask.CompletedTask;
+        }
+
         // 通常ダイアログ
         public async UniTask On(DialogCommand command, CancellationToken ct)
         {

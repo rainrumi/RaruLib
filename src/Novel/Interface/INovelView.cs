@@ -11,6 +11,12 @@ namespace RaruLib
         // ダイアログ表示
         UniTask ShowDialogAsync(string name, string text, CancellationToken ct);
 
+        /// <summary>文章再生とは独立してメッセージボックスを表示する。</summary>
+        void ShowMessageBox();
+
+        /// <summary>背景と立ち絵を維持し、メッセージボックスを非表示にする。</summary>
+        void HideMessageBox();
+
         // 選択肢表示
         UniTask<int> ShowChoiceAsync(IReadOnlyList<string> options, CancellationToken ct);
 

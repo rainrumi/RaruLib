@@ -97,6 +97,24 @@ namespace RaruLib
             }
         }
 
+        /// <summary>Rubyの明示命令でメッセージボックスと文章欄を表示する。</summary>
+        // ボックスを表示
+        public void ShowMessageBox()
+        {
+            // 既存の表示親
+            GameObject textBoxRoot = nameTxt.transform.parent.gameObject;
+            nameTxt.gameObject.SetActive(true);
+            bodyTxt.gameObject.SetActive(true);
+            textBoxRoot.SetActive(true);
+        }
+
+        /// <summary>Rubyの明示命令でメッセージボックスだけを非表示にする。</summary>
+        // ボックスを隠す
+        public void HideMessageBox()
+        {
+            nameTxt.transform.parent.gameObject.SetActive(false);
+        }
+
         // ダイアログ表示
         public async UniTask ShowDialogAsync(string name, string text, CancellationToken _ct)
         {
@@ -109,11 +127,6 @@ namespace RaruLib
 
             nameTxt.text = "";
             bodyTxt.text = "";
-
-            GameObject textBoxRoot = nameTxt.transform.parent.gameObject;
-            textBoxRoot.SetActive(true);
-            nameTxt.gameObject.SetActive(true);
-            bodyTxt.gameObject.SetActive(true);
 
             nameTxt.text = name;
 
@@ -139,7 +152,6 @@ namespace RaruLib
                     UniTask.Delay(TimeSpan.FromSeconds(autoWait), cancellationToken: cancellationToken));
             }
 
-            textBoxRoot.SetActive(false);
         }
 
         // 選択肢表示
