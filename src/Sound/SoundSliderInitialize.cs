@@ -25,6 +25,9 @@ namespace RaruLib
                 case SoundKind.SE:
                     slider.value = Sound.instance.GetVolume("SE");
                     break;
+                case SoundKind.Master:
+                    slider.value = Sound.instance.GetMasterVolume();
+                    break;
             }
         }
     }

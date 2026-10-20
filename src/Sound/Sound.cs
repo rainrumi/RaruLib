@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -20,8 +21,9 @@ using UnityEngine;
 
 public enum SoundKind
 {
-    BGM,
-    SE
+    BGM = 0,
+    SE = 1,
+    Master = 2
 }
 
 namespace RaruLib
@@ -36,6 +38,9 @@ namespace RaruLib
 
         [SerializeField] SoundGroup[] soundGroups;          // 音のカテゴリ
         private Dictionary<string, SoundGroup> groupDict;
+        private float _masterVolume = 1.0f;  // マスターボリューム
+        private readonly Dictionary<AudioSource, float> _fadeFactors = new(); // 音ごとのフェード係数
+        private readonly Dictionary<AudioSource, Tween> _fadeTweens = new(); // 自身の音量Tween
 
         [Serializable]
         public class SoundGroup
@@ -94,6 +99,7 @@ namespace RaruLib
                 foreach (var dataSet in data.soundDatas)
                 {
                     data.soundDict.Add(dataSet.soundName, dataSet.audioSource);
+                    _fadeFactors[dataSet.audioSource] = 1.0f;
                 }
             }
         }
@@ -131,7 +137,7 @@ namespace RaruLib
 
             groupDict[groupName].volume = newVolume;
             foreach (var dataSet in groupDict[groupName].soundDict)
-            { dataSet.Value.volume = groupDict[groupName].volume; }
+            { ApplyVolume(groupDict[groupName], dataSet.Value); }
         }
 
         /***************************************************************
@@ -179,7 +185,13 @@ namespace RaruLib
 #endif                
                 return; 
             }
-            groupDict[groupName].soundDict[soundName].Play();
+            // フェードを解除して再生
+            SoundGroup group = groupDict[groupName];
+            AudioSource source = group.soundDict[soundName];
+            CancelVolumeFade(source);
+            _fadeFactors[source] = 1.0f;
+            ApplyVolume(group, source);
+            source.Play();
         }
 
         /***************************************************************
@@ -211,14 +223,27 @@ namespace RaruLib
                 return; 
             }
 
-            float cacheVolume = GetVolume(groupName);
-
-            groupDict[groupName].soundDict[soundName].volume = 0;
-
-            await UniTask.Yield();
-
-            groupDict[groupName].soundDict[soundName].Play();
-            groupDict[groupName].soundDict[soundName].DOFade(cacheVolume, duration);
+            // 音量係数をゼロから戻す
+            SoundGroup group = groupDict[groupName];
+            AudioSource source = group.soundDict[soundName];
+            CancelVolumeFade(source);
+            _fadeFactors[source] = 0.0f;
+            ApplyVolume(group, source);
+            CancellationToken destroyToken = this.GetCancellationTokenOnDestroy();
+            try
+            {
+                await UniTask.Yield(cancellationToken: destroyToken);
+            }
+            catch (OperationCanceledException) when (destroyToken.IsCancellationRequested)
+            {
+                return;
+            }
+            if (this == null || source == null)
+            {
+                return;
+            }
+            source.Play();
+            StartVolumeFade(group, source, 1.0f, duration);
         }
 
         /***************************************************************
@@ -243,7 +268,13 @@ namespace RaruLib
             }
             if (this == null) return;
 
-            groupDict[groupName].soundDict[soundName].Stop();
+            // 停止後の音量を元へ戻す
+            SoundGroup group = groupDict[groupName];
+            AudioSource source = group.soundDict[soundName];
+            CancelVolumeFade(source);
+            source.Stop();
+            _fadeFactors[source] = 1.0f;
+            ApplyVolume(group, source);
         }
 
         /***************************************************************
@@ -267,14 +298,94 @@ namespace RaruLib
                 return; 
             }
 
-            float cacheVolume = GetVolume(groupName);
+            // フェード中も現在の設定を使う
+            SoundGroup group = groupDict[groupName];
+            AudioSource source = group.soundDict[soundName];
+            Tween fadeTween = StartVolumeFade(group, source, 0.0f, duration);
+            CancellationToken destroyToken = this.GetCancellationTokenOnDestroy();
+            try
+            {
+                await UniTask.WaitForSeconds(duration, cancellationToken: destroyToken);
+            }
+            catch (OperationCanceledException) when (destroyToken.IsCancellationRequested)
+            {
+                return;
+            }
+            if (this == null || source == null)
+            {
+                return;
+            }
+            // 新しい要求の再生は止めない
+            if (!_fadeTweens.TryGetValue(source, out Tween currentTween) || currentTween != fadeTween)
+            {
+                return;
+            }
+            CancelVolumeFade(source);
+            source.Stop();
+            _fadeFactors[source] = 1.0f;
+            ApplyVolume(group, source);
+        }
 
-            groupDict[groupName].soundDict[soundName].DOFade(0, duration);
 
-            await UniTask.WaitForSeconds(duration);
+        /// <summary>グループ音量とは独立したマスター音量を返す。</summary>
+        public float GetMasterVolume() => _masterVolume;
 
-            groupDict[groupName].soundDict[soundName].Stop();
-            groupDict[groupName].soundDict[soundName].volume = cacheVolume;
+        /// <summary>マスター音量を変更し、全ての音へ即時に反映する。</summary>
+        public void ChangeMasterVolume(float value)
+        {
+            _masterVolume = Mathf.Clamp01(value);
+            // 生のグループ音量は保持する
+            foreach (SoundGroup group in groupDict.Values)
+            {
+                foreach (AudioSource source in group.soundDict.Values)
+                {
+                    ApplyVolume(group, source);
+                }
+            }
+        }
+
+        // 設定値と係数を合成
+        private void ApplyVolume(SoundGroup group, AudioSource source)
+        {
+            source.volume = group.volume * _masterVolume * _fadeFactors[source];
+        }
+
+        // 自身の古いTweenを取消
+        private void CancelVolumeFade(AudioSource source)
+        {
+            if (_fadeTweens.TryGetValue(source, out Tween tween))
+            {
+                tween.Kill();
+                _fadeTweens.Remove(source);
+            }
+        }
+
+        // 音ごとの係数をイージング
+        private Tween StartVolumeFade(SoundGroup group, AudioSource source, float target, float duration)
+        {
+            CancelVolumeFade(source);
+            Tween tween = DOTween.To(() => _fadeFactors[source], factor =>
+            {
+                if (this == null || source == null)
+                {
+                    return;
+                }
+                _fadeFactors[source] = factor;
+                ApplyVolume(group, source);
+            }, target, duration).SetTarget(source).SetLink(source.gameObject, LinkBehaviour.KillOnDestroy);
+            _fadeTweens[source] = tween;
+            return tween;
+        }
+
+        // 所有する音量Tweenを解放
+        private void OnDestroy()
+        {
+            foreach (Tween tween in _fadeTweens.Values)
+            {
+                tween.Kill();
+            }
+            _fadeTweens.Clear();
+            _fadeFactors.Clear();
         }
 
     }
