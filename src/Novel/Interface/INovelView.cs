@@ -8,6 +8,12 @@ namespace RaruLib
     // ノベルの表示
     public interface INovelView
     {
+        /// <summary>既読シナリオのスキップ操作を接続するButton。</summary>
+        UnityEngine.UI.Button SkipButton { get; }
+
+        /// <summary>スキップ操作の表示と受付を切り替える。既読の判定は呼出し側が行う。</summary>
+        void ChangeSkipVisible(bool isVisible);
+
         // ダイアログ表示
         UniTask ShowDialogAsync(string name, string text, CancellationToken ct);
 
