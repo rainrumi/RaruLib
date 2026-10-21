@@ -54,6 +54,20 @@ namespace RaruLib
         private readonly Vector2[] _standPositions = new Vector2[3]; // 左中央右
         private readonly Vector3[] _standScales = new Vector3[3]; // 基準倍率
 
+        [SerializeField, Tooltip("既読シナリオのスキップ操作")]
+        private UnityEngine.UI.Button _skipButton; // スキップ操作
+
+        /// <summary>シナリオ全体のスキップ要求を接続するButton。</summary>
+        public UnityEngine.UI.Button SkipButton => _skipButton;
+
+        /// <summary>スキップ操作の表示と受付を切り替える。既読判定は呼出し側が行う。</summary>
+        // スキップ表示切替
+        public void ChangeSkipVisible(bool isVisible)
+        {
+            _skipButton.interactable = isVisible;
+            _skipButton.gameObject.SetActive(isVisible);
+        }
+
         private NovelData _data;
         private bool isTyping;
         private CancellationTokenSource typingCts;
