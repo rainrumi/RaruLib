@@ -49,9 +49,11 @@ namespace RaruLib
         private UnityEngine.UI.Image _backgroundImage; // 背景画像
         [SerializeField, Tooltip("管理番号0・1・2の順に設定する立ち絵画像")]
         private UnityEngine.UI.Image[] _standImages = new UnityEngine.UI.Image[3]; // 立ち絵枠
+        [SerializeField, Tooltip("中央下の立ち絵表示位置")]
+        private RectTransform _standCenterDownAnchor; // 中央下の位置
         private INovelInitializeStatus _initializeStatus; // 演出設定
         private readonly Vector2[] _standOrigins = new Vector2[3]; // 定位置
-        private readonly Vector2[] _standPositions = new Vector2[3]; // 左中央右
+        private readonly Vector2[] _standPositions = new Vector2[4]; // 左中央右
         private readonly Vector3[] _standScales = new Vector3[3]; // 基準倍率
 
         [SerializeField, Tooltip("既読シナリオのスキップ操作")]
@@ -90,6 +92,7 @@ namespace RaruLib
                 _standOrigins[id] = _standPositions[id];
                 _standScales[id] = _standImages[id].rectTransform.localScale;
             }
+            _standPositions[3] = _standCenterDownAnchor.anchoredPosition;
         }
 
         private void Start()
@@ -398,6 +401,7 @@ namespace RaruLib
                 "left" => _standPositions[0],
                 "center" => _standPositions[1],
                 "right" => _standPositions[2],
+                "center_down" => _standPositions[3],
                 _ => throw new NotSupportedException($"立ち絵の表示位置に未対応です: {position}")
             };
         }
