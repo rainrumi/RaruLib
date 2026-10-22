@@ -1,1 +1,6 @@
 /src/Novel/View/NovelView.cs -text
+
+# Preserve validated stand size source bytes.
+/src/Novel/Command/StandCommand.cs -text
+/src/Novel/Handler/NovelCommandHandler.cs -text
+/src/Novel/Interface/INovelView.cs -text

@@ -263,7 +263,7 @@ namespace RaruLib
 
         /// <summary>指定枠の画像を差し替え、登場演出の完了を待つ。</summary>
         // 立ち絵を表示
-        public async UniTask ShowStandAsync(int id, string path, string position, string effect, float duration, CancellationToken ct)
+        public async UniTask ShowStandAsync(int id, string path, float width, float height, string position, string effect, float duration, CancellationToken ct)
         {
             // 表示先の寿命を連結
             CancellationToken destroyToken = this.GetCancellationTokenOnDestroy();
@@ -273,6 +273,9 @@ namespace RaruLib
             RectTransform rect = image.rectTransform; // 表示姿勢
             Sprite sprite = LoadSprite(path); // 指定差分
             _standOrigins[id] = GetStandPosition(id, position);
+            // 指定した表示寸法
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             image.sprite = sprite;
             image.gameObject.SetActive(true);
             rect.anchoredPosition = _standOrigins[id];
