@@ -23,6 +23,9 @@ namespace RaruLib
         /// <summary>背景と立ち絵を維持し、メッセージボックスを非表示にする。</summary>
         void HideMessageBox();
 
+        /// <summary>表示状態を保ち、メッセージボックスの名前と本文だけを消す。</summary>
+        void ClearMessageBox();
+
         // 選択肢表示
         UniTask<int> ShowChoiceAsync(IReadOnlyList<string> options, CancellationToken ct);
 

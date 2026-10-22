@@ -4,3 +4,6 @@
 /src/Novel/Command/StandCommand.cs -text
 /src/Novel/Handler/NovelCommandHandler.cs -text
 /src/Novel/Interface/INovelView.cs -text
+
+# Preserve validated messagebox command source bytes.
+/src/Novel/Command/MessageBoxCommand.cs -text

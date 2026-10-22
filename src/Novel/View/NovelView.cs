@@ -132,6 +132,14 @@ namespace RaruLib
             nameTxt.transform.parent.gameObject.SetActive(false);
         }
 
+        /// <summary>背景や立ち絵、ボックスの表示状態を変えず、名前と本文を消す。</summary>
+        // 名前と本文を消去
+        public void ClearMessageBox()
+        {
+            nameTxt.text = "";
+            bodyTxt.text = "";
+        }
+
         // ダイアログ表示
         public async UniTask ShowDialogAsync(string name, string text, CancellationToken _ct)
         {
