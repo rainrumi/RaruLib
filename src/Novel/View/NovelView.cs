@@ -40,6 +40,8 @@ namespace RaruLib
         // ベースUI
         [SerializeField] private TMP_Text nameTxt;
         [SerializeField] private TMP_Text bodyTxt;
+        [SerializeField, Tooltip("全文表示後のクリック待ち案内")]
+        private GameObject _clickWaitGlyph; // クリック待ち表示
         // 音用コマンド
         [SerializeField] private SoundCommand soundCmd;
 
@@ -98,6 +100,7 @@ namespace RaruLib
         private void Start()
         {
             isTyping = false;
+            _clickWaitGlyph.SetActive(false);
         }
 
         private void Update()
@@ -129,6 +132,7 @@ namespace RaruLib
         // ボックスを隠す
         public void HideMessageBox()
         {
+            _clickWaitGlyph.SetActive(false);
             nameTxt.transform.parent.gameObject.SetActive(false);
         }
 
@@ -136,6 +140,7 @@ namespace RaruLib
         // 名前と本文を消去
         public void ClearMessageBox()
         {
+            _clickWaitGlyph.SetActive(false);
             nameTxt.text = "";
             bodyTxt.text = "";
         }
@@ -143,40 +148,54 @@ namespace RaruLib
         // ダイアログ表示
         public async UniTask ShowDialogAsync(string name, string text, CancellationToken _ct)
         {
+            CancellationToken destroyToken = this.GetCancellationTokenOnDestroy();
             using CancellationTokenSource linkedTokenSource =
-                CancellationTokenSource.CreateLinkedTokenSource(
-                    _ct,
-                    this.GetCancellationTokenOnDestroy());
+                CancellationTokenSource.CreateLinkedTokenSource(_ct, destroyToken);
             CancellationToken cancellationToken = linkedTokenSource.Token;
             cancellationToken.ThrowIfCancellationRequested();
 
-            nameTxt.text = "";
-            bodyTxt.text = "";
-
-            nameTxt.text = name;
-
-            await TypeText(text, cancellationToken);
-
-            if (!_data._isAuto)
+            _clickWaitGlyph.SetActive(false);
+            try
             {
-                await UniTask.WaitUntil(() =>
-                    Pointer.current?.press.wasPressedThisFrame == true ||
-                    Mouse.current?.rightButton.wasPressedThisFrame == true
-                    , cancellationToken: cancellationToken);
-            }
-            else
-            {
-                // オート時の待機時間
-                float autoWait = _data._autoWait + text.Length * _data._autoWaitPerChar;
-                // 通常条件に加えて、オート時の待機時間終了でも進行
-                await UniTask.WhenAny(
-                    UniTask.WaitUntil(() =>
+                nameTxt.text = "";
+                bodyTxt.text = "";
+
+                nameTxt.text = name;
+
+                await TypeText(text, cancellationToken);
+
+                // 全文表示後だけ案内
+                _clickWaitGlyph.SetActive(nameTxt.transform.parent.gameObject.activeInHierarchy);
+                // 全文表示の入力と分離
+                await UniTask.NextFrame(PlayerLoopTiming.EarlyUpdate, cancellationToken: cancellationToken);
+                if (!_data._isAuto)
+                {
+                    await UniTask.WaitUntil(() =>
                         Pointer.current?.press.wasPressedThisFrame == true ||
                         Mouse.current?.rightButton.wasPressedThisFrame == true
-                        , cancellationToken: cancellationToken),
-                    UniTask.Delay(TimeSpan.FromSeconds(autoWait), cancellationToken: cancellationToken));
+                        , cancellationToken: cancellationToken);
+                }
+                else
+                {
+                    // オート時の待機時間
+                    float autoWait = _data._autoWait + text.Length * _data._autoWaitPerChar;
+                    // 通常条件に加えて、オート時の待機時間終了でも進行
+                    await UniTask.WhenAny(
+                        UniTask.WaitUntil(() =>
+                            Pointer.current?.press.wasPressedThisFrame == true ||
+                            Mouse.current?.rightButton.wasPressedThisFrame == true
+                            , cancellationToken: cancellationToken),
+                        UniTask.Delay(TimeSpan.FromSeconds(autoWait), cancellationToken: cancellationToken));
+                }
             }
-
+            finally
+            {
+                // 破棄後の参照を避ける
+                if (!destroyToken.IsCancellationRequested)
+                {
+                    _clickWaitGlyph.SetActive(false);
+                }
+            }
         }
 
         // 選択肢表示
