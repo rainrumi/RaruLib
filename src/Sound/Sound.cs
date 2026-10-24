@@ -38,7 +38,7 @@ namespace RaruLib
 
         [SerializeField] SoundGroup[] soundGroups;          // 音のカテゴリ
         private Dictionary<string, SoundGroup> groupDict;
-        private float _masterVolume = 1.0f;  // マスターボリューム
+        private float _masterVolume = 0.5f;  // マスターボリューム
         private readonly Dictionary<AudioSource, float> _fadeFactors = new(); // 音ごとのフェード係数
         private readonly Dictionary<AudioSource, Tween> _fadeTweens = new(); // 自身の音量Tween
 
