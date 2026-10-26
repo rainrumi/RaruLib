@@ -8,6 +8,10 @@ namespace RaruLib
         [SerializeField, Tooltip("•¶ŽšÄ¶‘¬“x"), Range(0.0f, 1.0f)] private float _charSpeed;
         public float CharSpeed => _charSpeed;
 
+        [SerializeField, Tooltip("”¼ŠpE‘SŠp‹ó”’‚Å‹æØ‚Á‚½‰ò‚Ì“r’†‚Å‰üs‚µ‚È‚¢")]
+        private bool _useSpaceWordWrapping = false; // ‹ó”’‹æØ‚èÜ•Ô‚µ
+        public bool UseSpaceWordWrapping => _useSpaceWordWrapping;
+
         [SerializeField, Tooltip("•¶ŽšŠÔ’âŽ~Å‘åŽžŠÔ")] private float _maxCharWait;
         public float MaxCharWait => _maxCharWait;
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -222,24 +223,54 @@ namespace RaruLib
             using CancellationTokenSource currentTypingCts =
                 CancellationTokenSource.CreateLinkedTokenSource(_ct);
             typingCts = currentTypingCts;
-
-            bodyTxt.text = "";
+            bool useSpaceWordWrapping = _initializeStatus.UseSpaceWordWrapping; // 表示方法
 
             try
             {
-                foreach (char _text in text)
+                // 前の文章の表示制限を解除
+                bodyTxt.maxVisibleCharacters = int.MaxValue;
+                bodyTxt.text = "";
+
+                if (useSpaceWordWrapping)
                 {
-                    // 効果音があれば鳴らす
-                    if (soundCmd != null && _data._popopo.Length > 0) soundCmd.CallPlaySE(_data._popopo);
-                    // テキストの追加
-                    bodyTxt.text += _text;
-                    await UniTask.WaitForSeconds(_data.CharWait, cancellationToken: currentTypingCts.Token);
+                    // 全文で配置を確定してから文字を見せる
+                    bodyTxt.maxVisibleCharacters = 0;
+                    bodyTxt.text = BuildSpaceWordWrappingText(text);
+                    bodyTxt.ForceMeshUpdate(true, true);
+                    int characterCount = bodyTxt.textInfo.characterCount; // 表示文字数
+
+                    for (int index = 0; index < characterCount; index++)
+                    {
+                        // タグを数えずに文字を再生
+                        if (soundCmd != null && _data._popopo.Length > 0) soundCmd.CallPlaySE(_data._popopo);
+                        bodyTxt.maxVisibleCharacters = index + 1;
+                        await UniTask.WaitForSeconds(_data.CharWait, cancellationToken: currentTypingCts.Token);
+                    }
+                }
+                else
+                {
+                    foreach (char _text in text)
+                    {
+                        // 効果音があれば鳴らす
+                        if (soundCmd != null && _data._popopo.Length > 0) soundCmd.CallPlaySE(_data._popopo);
+                        // テキストの追加
+                        bodyTxt.text += _text;
+                        await UniTask.WaitForSeconds(_data.CharWait, cancellationToken: currentTypingCts.Token);
+                    }
                 }
             }
             catch (OperationCanceledException)
                 when (!_ct.IsCancellationRequested && currentTypingCts.IsCancellationRequested)
             {
-                bodyTxt.text = text;
+                if (useSpaceWordWrapping)
+                {
+                    // 折り返しを保ったまま全文を表示
+                    bodyTxt.maxVisibleCharacters = int.MaxValue;
+                }
+                else
+                {
+                    bodyTxt.text = text;
+                }
             }
             finally
             {
@@ -251,6 +282,73 @@ namespace RaruLib
             }
 
             _ct.ThrowIfCancellationRequested();
+        }
+
+        // 空白区切りで表示用タグを付加
+        private static string BuildSpaceWordWrappingText(string text)
+        {
+            // 明示的な改行制御とタグ無効化を優先
+            if (text.IndexOf("<nobr", StringComparison.OrdinalIgnoreCase) >= 0
+                || text.IndexOf("<noparse", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return text;
+            }
+
+            StringBuilder result = new StringBuilder(text.Length); // 表示用全文
+            StringBuilder word = new StringBuilder(); // 表示する塊
+
+            for (int index = 0; index < text.Length; index++)
+            {
+                char character = text[index]; // 現在の文字
+                if (character == '<')
+                {
+                    int tagEnd = text.IndexOf('>', index + 1); // タグの末尾
+                    if (tagEnd >= 0)
+                    {
+                        string tag = text.Substring(index, tagEnd - index + 1); // 既存のタグ
+                        if (tag.Equals("<br>", StringComparison.OrdinalIgnoreCase)
+                            || tag.Equals("<br/>", StringComparison.OrdinalIgnoreCase)
+                            || tag.Equals("<br />", StringComparison.OrdinalIgnoreCase))
+                        {
+                            AppendWrappedWord(result, word);
+                            result.Append(tag);
+                        }
+                        else
+                        {
+                            word.Append(tag);
+                        }
+
+                        index = tagEnd;
+                        continue;
+                    }
+                }
+
+                // 空白・明示改行は元のまま残す
+                if (character == ' ' || character == '\u3000'
+                    || character == '\r' || character == '\n' || character == '\t')
+                {
+                    AppendWrappedWord(result, word);
+                    result.Append(character);
+                    continue;
+                }
+
+                word.Append(character);
+            }
+
+            AppendWrappedWord(result, word);
+            return result.ToString();
+        }
+
+        // 途中で折り返さない塊を追加
+        private static void AppendWrappedWord(StringBuilder result, StringBuilder word)
+        {
+            if (word.Length == 0)
+            {
+                return;
+            }
+
+            result.Append("<nobr>").Append(word).Append("</nobr>");
+            word.Clear();
         }
 
         /// <summary>旧背景を消して画像を差し替え、新背景の表示完了を待つ。</summary>

@@ -3,6 +3,7 @@ namespace RaruLib
     public interface INovelInitializeStatus
     {
         float CharSpeed { get; }
+        bool UseSpaceWordWrapping { get; }
         float MaxCharWait { get; }
         float AutoWait { get; }
         float AutoWaitPerChar { get; }
