@@ -1,3 +1,4 @@
+using System;
 
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -9,10 +10,12 @@ namespace RaruLib
     public partial class NovelCommandHandler
     {
         private readonly INovelView _view;
+        private readonly ISoundCommand _soundCommand; // 音声の呼出先
 
-        public NovelCommandHandler(INovelView view)
+        public NovelCommandHandler(INovelView view, ISoundCommand soundCommand)
         {
             _view = view;
+            _soundCommand = soundCommand;
         }
 
         /// <summary>Rubyのボックス操作を、取消済みでない場合だけViewへ反映する。</summary>
@@ -73,6 +76,41 @@ namespace RaruLib
         public async UniTask On(StandEffectCommand command, CancellationToken ct)
         {
             await _view.PlayStandEffectAsync(command.Id, command.Effect, command.Duration, ct);
+        }
+
+        /// <summary>指定秒数の待機を、ノベル再生の取消と接続する。</summary>
+        // 次の命令まで待機
+        public UniTask On(WaitCommand command, CancellationToken ct)
+        {
+            return UniTask.Delay(TimeSpan.FromSeconds(command.Seconds),
+                ignoreTimeScale: true, cancellationToken: ct);
+        }
+
+        /// <summary>SEの開始だけを指示し、音の終了は待たない。</summary>
+        // 音声の要求を転送
+        public UniTask On(SePlayCommand command, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            _soundCommand.CallPlaySE(command.SoundName);
+            return UniTask.CompletedTask;
+        }
+
+        /// <summary>指定したBGMだけを再生し、音の終了は待たない。</summary>
+        // 音声の要求を転送
+        public UniTask On(BgmPlayCommand command, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            _soundCommand.CallPlayBGM(command.SoundName);
+            return UniTask.CompletedTask;
+        }
+
+        /// <summary>指定したBGMだけを、既存フェードも含めて停止する。</summary>
+        // 音声の要求を転送
+        public UniTask On(BgmStopCommand command, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            _soundCommand.CallStopBGM(command.SoundName);
+            return UniTask.CompletedTask;
         }
     }
 }

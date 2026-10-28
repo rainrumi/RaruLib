@@ -35,6 +35,10 @@ namespace RaruLib
                 x.AddCommand<StandCommand>("stand");
                 x.AddCommand<StandHideCommand>("stand_hide");
                 x.AddCommand<StandEffectCommand>("stand_fx");
+                x.AddCommand<WaitCommand>("wait");
+                x.AddCommand<SePlayCommand>("se_play");
+                x.AddCommand<BgmPlayCommand>("bgm_play");
+                x.AddCommand<BgmStopCommand>("bgm_stop");
             });
         }
 
