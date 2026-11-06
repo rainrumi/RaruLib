@@ -62,6 +62,11 @@ namespace RaruLib
         [SerializeField, Tooltip("既読シナリオのスキップ操作")]
         private UnityEngine.UI.Button _skipButton; // スキップ操作
 
+        [SerializeField, Tooltip("本文送りを止める画面のCanvasGroup。空なら除外なし")]
+        private CanvasGroup[] _advanceInputBlockingGroups = Array.Empty<CanvasGroup>(); // 本文入力の停止UI
+        [SerializeField, Tooltip("本文送りに使わないScreen Space Overlayの領域。空なら除外なし")]
+        private RectTransform[] _advanceInputExcludedAreas = Array.Empty<RectTransform>(); // 本文入力の除外領域
+
         /// <summary>シナリオ全体のスキップ要求を接続するButton。</summary>
         public UnityEngine.UI.Button SkipButton => _skipButton;
 
@@ -104,10 +109,46 @@ namespace RaruLib
             _clickWaitGlyph.SetActive(false);
         }
 
+        // 本文入力を判定
+        private bool IsAdvanceInputPressed()
+        {
+            // 押下した入力元
+            bool isPointerPressed = Pointer.current?.press.wasPressedThisFrame == true;
+            bool isRightButtonPressed = Mouse.current?.rightButton.wasPressedThisFrame == true;
+            if (!isPointerPressed && !isRightButtonPressed)
+            {
+                return false;
+            }
+
+            // 表示中の設定を優先
+            foreach (CanvasGroup group in _advanceInputBlockingGroups)
+            {
+                if (group.isActiveAndEnabled && group.alpha > 0.0f && group.blocksRaycasts)
+                {
+                    return false;
+                }
+            }
+
+            // 押下元の画面位置
+            Vector2 screenPosition = isPointerPressed
+                ? Pointer.current.position.ReadValue()
+                : Mouse.current.position.ReadValue();
+            // 設定ボタンを除外
+            foreach (RectTransform area in _advanceInputExcludedAreas)
+            {
+                if (area.gameObject.activeInHierarchy
+                    && RectTransformUtility.RectangleContainsScreenPoint(area, screenPosition))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private void Update()
         {
-            if (Pointer.current?.press.wasPressedThisFrame != true &&
-                    Mouse.current?.rightButton.wasPressedThisFrame != true)
+            if (!IsAdvanceInputPressed())
             {
                 return;
             }
@@ -171,10 +212,8 @@ namespace RaruLib
                 await UniTask.NextFrame(PlayerLoopTiming.EarlyUpdate, cancellationToken: cancellationToken);
                 if (!_data._isAuto)
                 {
-                    await UniTask.WaitUntil(() =>
-                        Pointer.current?.press.wasPressedThisFrame == true ||
-                        Mouse.current?.rightButton.wasPressedThisFrame == true
-                        , cancellationToken: cancellationToken);
+                    await UniTask.WaitUntil(IsAdvanceInputPressed,
+                        cancellationToken: cancellationToken);
                 }
                 else
                 {
@@ -182,10 +221,8 @@ namespace RaruLib
                     float autoWait = _data._autoWait + text.Length * _data._autoWaitPerChar;
                     // 通常条件に加えて、オート時の待機時間終了でも進行
                     await UniTask.WhenAny(
-                        UniTask.WaitUntil(() =>
-                            Pointer.current?.press.wasPressedThisFrame == true ||
-                            Mouse.current?.rightButton.wasPressedThisFrame == true
-                            , cancellationToken: cancellationToken),
+                        UniTask.WaitUntil(IsAdvanceInputPressed,
+                            cancellationToken: cancellationToken),
                         UniTask.Delay(TimeSpan.FromSeconds(autoWait), cancellationToken: cancellationToken));
                 }
             }
