@@ -284,8 +284,9 @@ namespace RaruLib
             _ct.ThrowIfCancellationRequested();
         }
 
+        /// <summary>空白区切りの塊を途中で折り返さない表示用文字列へ整える。</summary>
         // 空白区切りで表示用タグを付加
-        private static string BuildSpaceWordWrappingText(string text)
+        public static string BuildSpaceWordWrappingText(string text)
         {
             // 明示的な改行制御とタグ無効化を優先
             if (text.IndexOf("<nobr", StringComparison.OrdinalIgnoreCase) >= 0
