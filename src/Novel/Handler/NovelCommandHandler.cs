@@ -100,7 +100,7 @@ namespace RaruLib
         public UniTask On(BgmPlayCommand command, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
-            _soundCommand.CallPlayBGM(command.SoundName);
+            _soundCommand.CallPlayBGM(command.SoundName, command.Duration);
             return UniTask.CompletedTask;
         }
 
@@ -109,7 +109,7 @@ namespace RaruLib
         public UniTask On(BgmStopCommand command, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
-            _soundCommand.CallStopBGM(command.SoundName);
+            _soundCommand.CallStopBGM(command.SoundName, command.Duration);
             return UniTask.CompletedTask;
         }
     }
