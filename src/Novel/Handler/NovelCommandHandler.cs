@@ -75,7 +75,15 @@ namespace RaruLib
         // 番号の立ち絵を動作
         public async UniTask On(StandEffectCommand command, CancellationToken ct)
         {
-            await _view.PlayStandEffectAsync(command.Id, command.Effect, command.Duration, ct);
+            UniTask animation = _view.PlayStandEffectAsync(command.Id, command.Effect, command.Duration, ct);
+            if (command.WaitForCompletion)
+            {
+                await animation;
+            }
+            else
+            {
+                animation.SuppressCancellationThrow().Forget();
+            }
         }
 
         /// <summary>指定秒数の待機を、ノベル再生の取消と接続する。</summary>

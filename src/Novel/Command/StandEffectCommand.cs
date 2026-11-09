@@ -10,5 +10,6 @@ namespace RaruLib
         public int Id; // 管理番号
         public string Effect; // 演出名
         public float Duration; // 演出秒数
+        public bool WaitForCompletion; // 完了待ち
     }
 }
