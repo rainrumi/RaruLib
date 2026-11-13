@@ -54,6 +54,14 @@ namespace RaruLib
         private UnityEngine.UI.Image[] _standImages = new UnityEngine.UI.Image[3]; // 立ち絵枠
         [SerializeField, Tooltip("中央下の立ち絵表示位置")]
         private RectTransform _standCenterDownAnchor; // 中央下の位置
+        [SerializeField, Tooltip("キャラクターごとの立ち絵設定")]
+        private NovelStandInfo[] _standInfos = Array.Empty<NovelStandInfo>(); // 立ち絵の設定
+        [SerializeField, Tooltip("立ち絵ID順のフェード用CanvasGroup")]
+        private CanvasGroup[] _standFadeGroups = Array.Empty<CanvasGroup>(); // フェード
+        [SerializeField, Tooltip("立ち絵ID順に3枚ずつ並べた差分Image")]
+        private UnityEngine.UI.Image[] _standPartImages = Array.Empty<UnityEngine.UI.Image>(); // 差分表示枠
+        private const int StandPartCapacity = 3;
+        private readonly NovelStandInfo[] _activeStandInfos = new NovelStandInfo[3]; // 現在の素体
         private INovelInitializeStatus _initializeStatus; // 演出設定
         private readonly Vector2[] _standOrigins = new Vector2[3]; // 定位置
         private readonly Vector2[] _standPositions = new Vector2[4]; // 左中央右
@@ -428,22 +436,69 @@ namespace RaruLib
         // 立ち絵を表示
         public async UniTask ShowStandAsync(int id, string path, float width, float height, string position, string effect, float duration, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
+            UnityEngine.UI.Image image = _standImages[id];
+            await ShowStandAsync(id, image, LoadSprite(path), null, default, width, height, position, effect, duration, ct);
+        }
+
+        /// <summary>共通素体と指定キーの差分セットを表示する。</summary>
+        public UniTask ShowLayeredStandAsync(int id, string characterKey, string textureSetKey, float width, float height, string position, string effect, float duration, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (id < 0 || id >= _standImages.Length)
+            {
+                Debug.LogError($"立ち絵のIDが範囲外です: {id}", this);
+                return UniTask.CompletedTask;
+            }
+
+            NovelStandInfo info = Array.Find(_standInfos, item => item != null && item.CharacterKey == characterKey);
+            if (info == null || !info.TryGetTextureSet(textureSetKey, out NovelStandTextureSetData textureSet))
+            {
+                Debug.LogError($"立ち絵の差分セットが見つかりません: {characterKey}/{textureSetKey}", this);
+                return UniTask.CompletedTask;
+            }
+
+            if (info.Body == null || info.CanvasSize.x <= 0 || info.CanvasSize.y <= 0 ||
+                info.Parts.Count > StandPartCapacity || textureSet.Sprites == null || textureSet.Sprites.Count != info.Parts.Count ||
+                _standFadeGroups.Length <= id || _standPartImages.Length < (id + 1) * StandPartCapacity)
+            {
+                Debug.LogError($"立ち絵の素材または表示枠の設定が不正です: {characterKey}/{textureSetKey}", this);
+                return UniTask.CompletedTask;
+            }
+
+            return ShowStandAsync(id, _standImages[id], info.Body, info, textureSet, width, height, position, effect, duration, ct);
+        }
+
+        private async UniTask ShowStandAsync(int id, UnityEngine.UI.Image image, Sprite sprite, NovelStandInfo info,
+            NovelStandTextureSetData textureSet, float width, float height, string position, string effect, float duration, CancellationToken ct)
+        {
             // 表示先の寿命を連結
             CancellationToken destroyToken = this.GetCancellationTokenOnDestroy();
             using CancellationTokenSource linked = CancellationTokenSource.CreateLinkedTokenSource(ct, destroyToken);
             linked.Token.ThrowIfCancellationRequested();
-            UnityEngine.UI.Image image = _standImages[id]; // 対象画像
             RectTransform rect = image.rectTransform; // 表示姿勢
-            Sprite sprite = LoadSprite(path); // 指定差分
-            _standOrigins[id] = GetStandPosition(id, position);
+            Vector2 origin = GetStandPosition(id, position);
+            bool keepMotion = info != null && _activeStandInfos[id] == info && image.gameObject.activeSelf &&
+                (duration <= 0.0f || effect == "none") && _standOrigins[id] == origin &&
+                Mathf.Approximately(rect.rect.width, width) && Mathf.Approximately(rect.rect.height, height);
+            _standOrigins[id] = origin;
             // 指定した表示寸法
             rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
             rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
-            image.sprite = sprite;
+            if (image.sprite != sprite)
+            {
+                image.sprite = sprite;
+            }
             image.gameObject.SetActive(true);
+            ApplyStandParts(id, info, textureSet);
+            if (keepMotion)
+            {
+                return;
+            }
+
             rect.anchoredPosition = _standOrigins[id];
             rect.localScale = _standScales[id];
-            SetImageAlpha(image, 1.0f);
+            SetStandAlpha(id, 1.0f);
             try
             {
                 if (duration <= 0.0f || effect == "none")
@@ -454,8 +509,8 @@ namespace RaruLib
                 switch (effect)
                 {
                     case "fade":
-                        SetImageAlpha(image, 0.0f);
-                        tween = image.DOFade(1.0f, duration).SetEase(Ease.Linear);
+                        SetStandAlpha(id, 0.0f);
+                        tween = FadeStand(id, 1.0f, duration);
                         break;
                     case "slide":
                         // 表示位置に応じた方向から登場
@@ -480,7 +535,7 @@ namespace RaruLib
                 {
                     rect.anchoredPosition = _standOrigins[id];
                     rect.localScale = _standScales[id];
-                    SetImageAlpha(image, 1.0f);
+                    SetStandAlpha(id, 1.0f);
                 }
             }
         }
@@ -502,7 +557,7 @@ namespace RaruLib
             {
                 if (duration > 0.0f)
                 {
-                    await AwaitImageTweenAsync(image.DOFade(0.0f, duration).SetEase(Ease.Linear), linked.Token);
+                    await AwaitImageTweenAsync(FadeStand(id, 0.0f, duration), linked.Token);
                 }
             }
             finally
@@ -511,7 +566,7 @@ namespace RaruLib
                 if (!destroyToken.IsCancellationRequested)
                 {
                     image.gameObject.SetActive(false);
-                    SetImageAlpha(image, 1.0f);
+                    SetStandAlpha(id, 1.0f);
                 }
             }
         }
@@ -556,6 +611,84 @@ namespace RaruLib
                     rect.anchoredPosition = origin;
                 }
             }
+        }
+
+        // 共通素体に差分を配置する
+        private void ApplyStandParts(int id, NovelStandInfo info, NovelStandTextureSetData textureSet)
+        {
+            if (_activeStandInfos[id] != null && info == null)
+            {
+                _standFadeGroups[id].alpha = 1.0f;
+            }
+            _activeStandInfos[id] = info;
+
+            int start = id * StandPartCapacity;
+            for (int partIndex = 0; partIndex < StandPartCapacity && start + partIndex < _standPartImages.Length; partIndex++)
+            {
+                UnityEngine.UI.Image image = _standPartImages[start + partIndex];
+                Sprite sprite = info != null && partIndex < info.Parts.Count ? textureSet.Sprites[partIndex] : null;
+                if (image.sprite != sprite)
+                {
+                    image.sprite = sprite;
+                }
+                image.gameObject.SetActive(sprite != null);
+                if (sprite == null)
+                {
+                    continue;
+                }
+
+                PositionStandPart(_standImages[id], image.rectTransform, info.Parts[partIndex].PlacementRect, info.CanvasSize);
+            }
+        }
+
+        // 素体と同じ縦横比と余白を部位にも適用する
+        private static void PositionStandPart(UnityEngine.UI.Image body, RectTransform part, RectInt placement, Vector2Int canvas)
+        {
+            Rect rect = body.GetPixelAdjustedRect();
+            if (body.preserveAspect && rect.width > 0.0f && rect.height > 0.0f)
+            {
+                float aspect = body.sprite.rect.width / body.sprite.rect.height;
+                Vector2 pivot = body.rectTransform.pivot;
+                if (aspect > rect.width / rect.height)
+                {
+                    float height = rect.width / aspect;
+                    rect.y += (rect.height - height) * pivot.y;
+                    rect.height = height;
+                }
+                else
+                {
+                    float width = rect.height * aspect;
+                    rect.x += (rect.width - width) * pivot.x;
+                    rect.width = width;
+                }
+            }
+
+            part.sizeDelta = new Vector2(rect.width * placement.width / canvas.x, rect.height * placement.height / canvas.y);
+            Rect parent = body.rectTransform.rect;
+            part.anchoredPosition = new Vector2(
+                rect.x - parent.x + rect.width * placement.x / canvas.x,
+                rect.y - parent.y + rect.height * (canvas.y - placement.yMax) / canvas.y);
+        }
+
+        // 差分付き立ち絵は全体を一緒にフェードする
+        private Tween FadeStand(int id, float alpha, float duration)
+        {
+            Tween tween = _activeStandInfos[id] != null
+                ? _standFadeGroups[id].DOFade(alpha, duration)
+                : _standImages[id].DOFade(alpha, duration);
+            return tween.SetEase(Ease.Linear);
+        }
+
+        private void SetStandAlpha(int id, float alpha)
+        {
+            if (_activeStandInfos[id] != null)
+            {
+                SetImageAlpha(_standImages[id], 1.0f);
+                _standFadeGroups[id].alpha = alpha;
+                return;
+            }
+
+            SetImageAlpha(_standImages[id], alpha);
         }
 
         // 表示枠を解決

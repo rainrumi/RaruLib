@@ -63,6 +63,12 @@ namespace RaruLib
         // î‘çÜÇÃóßÇøäGÇï\é¶
         public async UniTask On(StandCommand command, CancellationToken ct)
         {
+            if (!string.IsNullOrEmpty(command.CharacterKey))
+            {
+                await _view.ShowLayeredStandAsync(command.Id, command.CharacterKey, command.TextureSetKey, command.Width, command.Height, command.Position, command.Effect, command.Duration, ct);
+                return;
+            }
+
             await _view.ShowStandAsync(command.Id, command.Path, command.Width, command.Height, command.Position, command.Effect, command.Duration, ct);
         }
 

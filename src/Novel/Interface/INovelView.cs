@@ -35,6 +35,9 @@ namespace RaruLib
         /// <summary>管理番号の立ち絵を表示し、登場完了まで待つ。</summary>
         UniTask ShowStandAsync(int id, string path, float width, float height, string position, string effect, float duration, CancellationToken ct);
 
+        /// <summary>キャラクターと差分セットを指定して立ち絵を表示する。</summary>
+        UniTask ShowLayeredStandAsync(int id, string characterKey, string textureSetKey, float width, float height, string position, string effect, float duration, CancellationToken ct);
+
         /// <summary>管理番号の立ち絵を非表示にする。</summary>
         UniTask HideStandAsync(int id, float duration, CancellationToken ct);
 
