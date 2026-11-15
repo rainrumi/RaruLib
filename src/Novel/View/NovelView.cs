@@ -9,6 +9,7 @@ using TMPro;
 using UnityEngine;
 using VContainer;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 using RaruLib;
 
 namespace RaruLib
@@ -123,7 +124,10 @@ namespace RaruLib
             // ‰Ÿ‰º‚µ‚½“ü—ÍŒ³
             bool isPointerPressed = Pointer.current?.press.wasPressedThisFrame == true;
             bool isRightButtonPressed = Mouse.current?.rightButton.wasPressedThisFrame == true;
-            if (!isPointerPressed && !isRightButtonPressed)
+            Keyboard keyboard = Keyboard.current;
+            bool isKeyPressed = keyboard != null && (keyboard.spaceKey.wasPressedThisFrame
+                || keyboard.zKey.wasPressedThisFrame || keyboard.enterKey.wasPressedThisFrame);
+            if (!isPointerPressed && !isRightButtonPressed && !isKeyPressed)
             {
                 return false;
             }
@@ -135,6 +139,22 @@ namespace RaruLib
                 {
                     return false;
                 }
+            }
+
+            if (isKeyPressed)
+            {
+                GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
+                if (selectedObject == null
+                    || !selectedObject.TryGetComponent(out UnityEngine.UI.Selectable control)
+                    || !control.IsActive() || !control.IsInteractable())
+                {
+                    return true;
+                }
+            }
+
+            if (!isPointerPressed && !isRightButtonPressed)
+            {
+                return false;
             }
 
             // ‰Ÿ‰ºŒ³‚Ì‰æ–ÊˆÊ’u
