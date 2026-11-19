@@ -127,7 +127,8 @@ namespace RaruLib
             Keyboard keyboard = Keyboard.current;
             bool isKeyPressed = keyboard != null && (keyboard.spaceKey.wasPressedThisFrame
                 || keyboard.zKey.wasPressedThisFrame || keyboard.enterKey.wasPressedThisFrame);
-            if (!isPointerPressed && !isRightButtonPressed && !isKeyPressed)
+            bool isFastForwardHeld = keyboard != null && (keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed);
+            if (!isPointerPressed && !isRightButtonPressed && !isKeyPressed && !isFastForwardHeld)
             {
                 return false;
             }
@@ -139,6 +140,11 @@ namespace RaruLib
                 {
                     return false;
                 }
+            }
+
+            if (isFastForwardHeld)
+            {
+                return true;
             }
 
             if (isKeyPressed)
